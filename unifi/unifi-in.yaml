@@ -1,0 +1,25 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: unifi
+  labels:
+    app: unifi
+    release: latest
+  annotations:
+    cert-manager.io/acme-challenge-type: http01
+    cert-manager.io/cluster-issuer: letsencrypt
+
+spec:
+  tls:
+    - secretName: unifi-tls
+      hosts:
+        - unifi-test.kyle.systems
+
+  rules:
+    - host: unifi-test.kyle.systems
+      http:
+        paths:
+          - path:
+            backend:
+              serviceName: unifi-web
+              servicePort: 80

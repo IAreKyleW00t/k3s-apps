@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unifi
+  labels:
+    app: unifi
+    release: latest
+
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 0
+
+  selector:
+    matchLabels:
+      app: unifi
+      release: latest
+
+  template:
+    metadata:
+      labels:
+        app: unifi
+        release: latest
+
+    spec:
+      nodeName: rancher.kyle.systems
+
+      volumes:
+        - name: unifi-data
+          persistentVolumeClaim:
+            claimName: unifi-data-pvc
+
+      containers:
+        - name: unifi
+          image: linuxserver/unifi-controller:latest
+          imagePullPolicy: Always
+          stdin: true
+          tty: true
+
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: 1000m
+            requests:
+              memory: 64Mi
+              cpu: 100m
+
+          ports:
+            - containerPort: 8080
+
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            capabilities:
+              drop:
+                - ALL
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            timeoutSeconds: 2
+            initialDelaySeconds: 60
+            periodSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            timeoutSeconds: 6
+            initialDelaySeconds: 90
+            periodSeconds: 2
+            failureThreshold: 3
+            successThreshold: 2
+
+          volumeMounts:
+          - name: unifi-data
+            mountPath: /config

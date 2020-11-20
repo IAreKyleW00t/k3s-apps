@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: unifi
+  labels:
+    app: unifi
+    release: latest
+
+spec:
+  type: ClusterIP
+  selector:
+    app: unifi
+    release: latest
+
+  ports:
+    - name: unifi-web
+      port: 80
+      targetPort: 8080
